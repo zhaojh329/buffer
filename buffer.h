@@ -50,7 +50,14 @@ struct buffer_chain {
 struct buffer {
     struct buffer_chain *head;
     struct buffer_chain *tail;
+
+    size_t data_len;
 };
+
+static inline size_t buffer_data_len(struct buffer *b)
+{
+    return b->data_len;
+}
 
 void buffer_free(struct buffer *b);
 

@@ -147,6 +147,7 @@ int buffer_add(struct buffer *b, const void *source, size_t len)
 			chain->tail += remain;
 			source += remain;
 			len -= remain;
+			b->data_len += remain;
 		}
     }
 
@@ -157,6 +158,7 @@ int buffer_add(struct buffer *b, const void *source, size_t len)
 copy:
     memcpy(chain->tail, source, len);
 	chain->tail += len;
+	b->data_len += len;
 	return 0;
 }
 
@@ -178,11 +180,13 @@ void buffer_drain(struct buffer *b, size_t len)
 
 		if (len < datlen) {
 			chain->data += len;
+			b->data_len -= len;
 			break;
 		}
 
 		len -= datlen;
         buffer_del_chain(b, chain);
+		b->data_len -= datlen;
 		chain = next;
 	} while(len);
 }
@@ -295,6 +299,7 @@ begin:
 
 		chain->tail += res;
 		remain -= res;
+		b->data_len += res;
 	} while (remain);
 
 	return len - remain;
