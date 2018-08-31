@@ -191,7 +191,7 @@ void buffer_drain(struct buffer *b, size_t len)
 	} while(len);
 }
 
-int buffer_remove(struct buffer *b, char *dest, size_t len)
+static int __buffer_copyout(struct buffer *b, char *dest, size_t len, bool drain)
 {
 	int remain = len;
 
@@ -212,10 +212,21 @@ int buffer_remove(struct buffer *b, char *dest, size_t len)
 		dest += datlen;
 		remain -= datlen;
 
-        buffer_drain(b, datlen);
+		if (drain)
+			buffer_drain(b, datlen);
 	} while (remain);
 
 	return len - remain;
+}
+
+int buffer_remove(struct buffer *b, char *dest, size_t len)
+{
+	return __buffer_copyout(b, dest, len, true);
+}
+
+int buffer_copyout(struct buffer *b, char *dest, size_t len)
+{
+	return __buffer_copyout(b, dest, len, false);
 }
 
 int buffer_add_string(struct buffer *b, const char *s)
