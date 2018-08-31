@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <limits.h>
+#include <assert.h>
 #include <stdbool.h>
 
 #include "buffer.h"
@@ -303,4 +304,53 @@ begin:
 	} while (remain);
 
 	return len - remain;
+}
+
+uint8_t buffer_index(struct buffer *b, size_t index)
+{
+	struct buffer_chain *chain = b->head;
+	size_t data_len;
+	size_t pos = 0;
+
+	while (chain) {
+		data_len = chain->tail - chain->data;
+
+		if (index < pos + data_len)
+			return chain->data[index - pos];
+
+		chain = chain->next;
+		pos += data_len;
+	}
+
+	return 0;
+}
+
+int buffer_find_str(struct buffer *b, const char *what)
+{
+	size_t data_len;
+	int i, what_len;
+	int pos = 0;
+
+	assert(what && *what);
+
+	what_len = strlen(what);
+
+	if (b->data_len < what_len)
+		return -1;
+
+	for (i = 0; i < b->data_len; i++) {
+		int m = 0, n = i;
+
+		if (b->data_len - i < what_len)
+			return -1;
+
+		if (buffer_index(b, n) == what[m]) {
+			while (buffer_index(b, n++) == what[m++]) {
+				if (what[m] == '\0')
+					return i;
+			}
+		}
+	}
+
+	return -1;
 }

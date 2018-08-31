@@ -87,4 +87,10 @@ int buffer_add_printf(struct buffer *b, const char *fmt, ...) __attribute__((for
 */
 int buffer_add_fd(struct buffer *b, int fd, int len, bool *eof);
 
+/* Index of a byte */
+uint8_t buffer_index(struct buffer *b, size_t index);
+
+/* Find a string in a buffer, return it's position or -1 if not found */
+int buffer_find_str(struct buffer *b, const char *what);
+
 #endif
