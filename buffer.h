@@ -65,6 +65,12 @@ void buffer_free(struct buffer *b);
 /* Append data to the end of a buffer. Returns the remaining unadded bytes */
 int buffer_add(struct buffer *b, const void *source, size_t len);
 
+/* Append a byte to the end of a buffer */
+static inline int buffer_add_byte(struct buffer *b, uint8_t byte)
+{
+    return buffer_add(b, &byte, 1);
+}
+
 /* Read data from a buffer and drain the bytes read. Return the number of bytes read */
 int buffer_remove(struct buffer *b, void *dest, size_t len);
 
