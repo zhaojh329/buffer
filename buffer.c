@@ -28,7 +28,6 @@
 #include <errno.h>
 #include <limits.h>
 #include <assert.h>
-#include <stdbool.h>
 
 #include "buffer.h"
 
