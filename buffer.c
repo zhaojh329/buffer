@@ -33,35 +33,35 @@
 
 static bool buffer_chain_should_align(struct buffer_chain *chain, int len)
 {
-	int maxlen;
-	int offset;
+    int maxlen;
+    int offset;
 
-	/* nothing to squeeze */
-	if (chain->data == chain->head)
-		return false;
+    /* nothing to squeeze */
+    if (chain->data == chain->head)
+        return false;
 
-	maxlen = chain->end - chain->head;
-	offset = chain->data - chain->head;
+    maxlen = chain->end - chain->head;
+    offset = chain->data - chain->head;
 
-	/* less than half is available */
-	if (offset > maxlen / 2)
-		return true;
+    /* less than half is available */
+    if (offset > maxlen / 2)
+        return true;
 
-	/* less than 32 bytes data but takes more than 1/4 space */
-	if (chain->tail - chain->data < 32 && offset > maxlen / 4)
-		return true;
+    /* less than 32 bytes data but takes more than 1/4 space */
+    if (chain->tail - chain->data < 32 && offset > maxlen / 4)
+        return true;
 
-	/* no need to move if len is available at the tail */
-	return (chain->end - chain->tail < len);
+    /* no need to move if len is available at the tail */
+    return (chain->end - chain->tail < len);
 }
 
 static void buffer_chain_align(struct buffer_chain *chain)
 {
-	int datlen = chain->tail - chain->data;
+    int datlen = chain->tail - chain->data;
 
-	memmove(chain->head, chain->data, datlen);
-	chain->data = chain->head;
-	chain->tail = chain->data + datlen;
+    memmove(chain->head, chain->data, datlen);
+    chain->data = chain->head;
+    chain->tail = chain->data + datlen;
 }
 
 static struct buffer_chain *buffer_chain_new(size_t len)
@@ -84,13 +84,13 @@ static struct buffer_chain *buffer_chain_new(size_t len)
 
 static void buffer_add_chain(struct buffer *b, struct buffer_chain *chain)
 {
-	if (!b->tail)
-		b->head = chain;
-	else
-		b->tail->next = chain;
+    if (!b->tail)
+        b->head = chain;
+    else
+        b->tail->next = chain;
 
-	chain->next = NULL;
-	b->tail = chain;
+    chain->next = NULL;
+    b->tail = chain;
 }
 
 static void buffer_del_chain(struct buffer *b, struct buffer_chain *chain)
@@ -117,17 +117,17 @@ static struct buffer_chain *buffer_expand(struct buffer *b, int len)
 
 void buffer_free(struct buffer *b)
 {
-	struct buffer_chain *chain = b->head;
+    struct buffer_chain *chain = b->head;
 
-	while (chain) {
-		struct buffer_chain *next = chain->next;
+    while (chain) {
+        struct buffer_chain *next = chain->next;
 
-		free(chain);
-		chain = next;
-	}
+        free(chain);
+        chain = next;
+    }
 
-	b->head = NULL;
-	b->tail = NULL;
+    b->head = NULL;
+    b->tail = NULL;
 }
 
 int buffer_add(struct buffer *b, const void *source, size_t len)
@@ -137,96 +137,96 @@ int buffer_add(struct buffer *b, const void *source, size_t len)
 
     if (chain) {
         if (buffer_chain_should_align(chain, len))
-			buffer_chain_align(chain);
+            buffer_chain_align(chain);
 
-		remain = chain->end - chain->tail;
-		if (remain >= len) {
-			goto copy;
-		} else if (remain > 0) {
-			memcpy(chain->tail, source, remain);
-			chain->tail += remain;
-			source += remain;
-			len -= remain;
-			b->data_len += remain;
-		}
+        remain = chain->end - chain->tail;
+        if (remain >= len) {
+            goto copy;
+        } else if (remain > 0) {
+            memcpy(chain->tail, source, remain);
+            chain->tail += remain;
+            source += remain;
+            len -= remain;
+            b->data_len += remain;
+        }
     }
 
     chain = buffer_expand(b, len);
-	if (!chain)
+    if (!chain)
         return len;
 
 copy:
     memcpy(chain->tail, source, len);
-	chain->tail += len;
-	b->data_len += len;
-	return 0;
+    chain->tail += len;
+    b->data_len += len;
+    return 0;
 }
 
 void buffer_drain(struct buffer *b, size_t len)
 {
-	struct buffer_chain *chain = b->head;
-	struct buffer_chain *next;
-	int datlen;
+    struct buffer_chain *chain = b->head;
+    struct buffer_chain *next;
+    int datlen;
 
-	if (!len)
-		return;
+    if (!len)
+        return;
 
-	do {
-		if (!chain)
-			break;
+    do {
+        if (!chain)
+            break;
 
-		next = chain->next;
-		datlen = chain->tail - chain->data;
+        next = chain->next;
+        datlen = chain->tail - chain->data;
 
-		if (len < datlen) {
-			chain->data += len;
-			b->data_len -= len;
-			break;
-		}
+        if (len < datlen) {
+            chain->data += len;
+            b->data_len -= len;
+            break;
+        }
 
-		len -= datlen;
+        len -= datlen;
         buffer_del_chain(b, chain);
-		b->data_len -= datlen;
-		chain = next;
-	} while(len);
+        b->data_len -= datlen;
+        chain = next;
+    } while(len);
 }
 
 static int __buffer_copyout(struct buffer *b, char *dest, size_t len, bool drain)
 {
-	int remain = len;
+    int remain = len;
 
-	do {
-		int datlen;
-		struct buffer_chain *chain = b->head;
-		if (!chain)
+    do {
+        int datlen;
+        struct buffer_chain *chain = b->head;
+        if (!chain)
             break;
 
         datlen = chain->tail - chain->data;
         if (datlen == 0)
             break;
 
-		if (datlen > remain)
-			datlen = remain;
+        if (datlen > remain)
+            datlen = remain;
 
-		memcpy(dest, chain->data, datlen);
-		dest += datlen;
-		remain -= datlen;
+        memcpy(dest, chain->data, datlen);
+        dest += datlen;
+        remain -= datlen;
 
-		if (drain)
-			buffer_drain(b, datlen);
-	} while (remain);
+        if (drain)
+            buffer_drain(b, datlen);
+    } while (remain);
 
-	return len - remain;
+    return len - remain;
 }
 
 int buffer_remove(struct buffer *b, char *dest, size_t len)
 {
-	return __buffer_copyout(b, dest, len, true);
+    return __buffer_copyout(b, dest, len, true);
 }
 
 int buffer_copyout(struct buffer *b, char *dest, size_t len)
 {
-	return __buffer_copyout(b, dest, len, false);
+    return __buffer_copyout(b, dest, len, false);
 }
 
 int buffer_add_string(struct buffer *b, const char *s)
@@ -236,131 +236,131 @@ int buffer_add_string(struct buffer *b, const char *s)
 
 int buffer_add_vprintf(struct buffer *b, const char *fmt, va_list ap)
 {
-	int res;
-	char *strp;
+    int res;
+    char *strp;
 
-	if (vasprintf(&strp, fmt, ap) < 0)
-		return -1;
+    if (vasprintf(&strp, fmt, ap) < 0)
+        return -1;
 
-	res = buffer_add_string(b, (const char *)strp);
+    res = buffer_add_string(b, (const char *)strp);
 
-	free(strp);
+    free(strp);
 
-	return res;
+    return res;
 }
 
 int buffer_add_printf(struct buffer *b, const char *fmt, ...)
 {
-	int res = -1;
-	va_list ap;
+    int res = -1;
+    va_list ap;
 
-	va_start(ap, fmt);
-	res = buffer_add_vprintf(b, fmt, ap);
-	va_end(ap);
+    va_start(ap, fmt);
+    res = buffer_add_vprintf(b, fmt, ap);
+    va_end(ap);
 
-	return (res);
+    return (res);
 }
 
 int buffer_add_fd(struct buffer *b, int fd, int len, bool *eof)
 {
-	struct buffer_chain *chain;
-	int avalible, remain, res;
+    struct buffer_chain *chain;
+    int avalible, remain, res;
 
-	*eof = false;
+    *eof = false;
 
-	if (len < 0)
-		len = INT_MAX;
-	remain = len;
+    if (len < 0)
+        len = INT_MAX;
+    remain = len;
 
-	do {
-		chain = b->tail;
+    do {
+        chain = b->tail;
 
-		if (chain) {
-			if (buffer_chain_should_align(chain, len))
-				buffer_chain_align(chain);
+        if (chain) {
+            if (buffer_chain_should_align(chain, len))
+                buffer_chain_align(chain);
 
-			if (chain->tail < chain->end)
-				goto begin;
-		}
+            if (chain->tail < chain->end)
+                goto begin;
+        }
 
-		chain = buffer_expand(b, 4096);
-		if (!chain)
-			return -1;
+        chain = buffer_expand(b, 4096);
+        if (!chain)
+            return -1;
 
 begin:
-		avalible = chain->end - chain->tail;
-		if (remain < avalible)
-			avalible = remain;
+        avalible = chain->end - chain->tail;
+        if (remain < avalible)
+            avalible = remain;
 
-		res = read(fd, chain->tail, avalible);
-		if (res < 0) {
-			if (errno == EINTR)
-				continue;
+        res = read(fd, chain->tail, avalible);
+        if (res < 0) {
+            if (errno == EINTR)
+                continue;
 
-			if (errno == EAGAIN || errno == ENOTCONN)
-				break;
+            if (errno == EAGAIN || errno == ENOTCONN)
+                break;
 
-			return -1;
-		}
+            return -1;
+        }
 
-		if (!res) {
-			*eof = true;
-			break;
-		}
+        if (!res) {
+            *eof = true;
+            break;
+        }
 
-		chain->tail += res;
-		remain -= res;
-		b->data_len += res;
-	} while (remain);
+        chain->tail += res;
+        remain -= res;
+        b->data_len += res;
+    } while (remain);
 
-	return len - remain;
+    return len - remain;
 }
 
 uint8_t buffer_index(struct buffer *b, size_t index)
 {
-	struct buffer_chain *chain = b->head;
-	size_t data_len;
-	size_t pos = 0;
+    struct buffer_chain *chain = b->head;
+    size_t data_len;
+    size_t pos = 0;
 
-	while (chain) {
-		data_len = chain->tail - chain->data;
+    while (chain) {
+        data_len = chain->tail - chain->data;
 
-		if (index < pos + data_len)
-			return chain->data[index - pos];
+        if (index < pos + data_len)
+            return chain->data[index - pos];
 
-		chain = chain->next;
-		pos += data_len;
-	}
+        chain = chain->next;
+        pos += data_len;
+    }
 
-	return 0;
+    return 0;
 }
 
 int buffer_find_str(struct buffer *b, const char *what)
 {
-	size_t data_len;
-	int i, what_len;
-	int pos = 0;
+    size_t data_len;
+    int i, what_len;
+    int pos = 0;
 
-	assert(what && *what);
+    assert(what && *what);
 
-	what_len = strlen(what);
+    what_len = strlen(what);
 
-	if (b->data_len < what_len)
-		return -1;
+    if (b->data_len < what_len)
+        return -1;
 
-	for (i = 0; i < b->data_len; i++) {
-		int m = 0, n = i;
+    for (i = 0; i < b->data_len; i++) {
+        int m = 0, n = i;
 
-		if (b->data_len - i < what_len)
-			return -1;
+        if (b->data_len - i < what_len)
+            return -1;
 
-		if (buffer_index(b, n) == what[m]) {
-			while (buffer_index(b, n++) == what[m++]) {
-				if (what[m] == '\0')
-					return i;
-			}
-		}
-	}
+        if (buffer_index(b, n) == what[m]) {
+            while (buffer_index(b, n++) == what[m++]) {
+                if (what[m] == '\0')
+                    return i;
+            }
+        }
+    }
 
-	return -1;
+    return -1;
 }
