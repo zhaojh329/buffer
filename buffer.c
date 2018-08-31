@@ -25,6 +25,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <errno.h>
+#include <limits.h>
 #include <stdbool.h>
 
 #include "buffer.h"
@@ -242,4 +244,58 @@ int buffer_add_printf(struct buffer *b, const char *fmt, ...)
 	va_end(ap);
 
 	return (res);
+}
+
+int buffer_add_fd(struct buffer *b, int fd, int len, bool *eof)
+{
+	struct buffer_chain *chain;
+	int avalible, remain, res;
+
+	*eof = false;
+
+	if (len < 0)
+		len = INT_MAX;
+	remain = len;
+
+	do {
+		chain = b->tail;
+
+		if (chain) {
+			if (buffer_chain_should_align(chain, len))
+				buffer_chain_align(chain);
+
+			if (chain->tail < chain->end)
+				goto begin;
+		}
+
+		chain = buffer_expand(b, 4096);
+		if (!chain)
+			return -1;
+
+begin:
+		avalible = chain->end - chain->tail;
+		if (remain < avalible)
+			avalible = remain;
+
+		res = read(fd, chain->tail, avalible);
+		if (res < 0) {
+			if (errno == EINTR)
+				continue;
+
+			if (errno == EAGAIN || errno == ENOTCONN)
+				break;
+
+			return -1;
+		}
+
+		if (!res) {
+			*eof = true;
+			break;
+		}
+
+		chain->tail += res;
+		remain -= res;
+	} while (remain);
+
+	return len - remain;
 }

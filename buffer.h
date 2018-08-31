@@ -72,4 +72,12 @@ int buffer_add_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribut
 /* Append a formatted string to the end of a buffer. Return the number of characters printed */
 int buffer_add_printf(struct buffer *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
+/*
+** Append data from a file to the end of a buffer
+**
+** len: how much data to read, or -1 to read as much as possible.
+** Return the number of bytes append
+*/
+int buffer_add_fd(struct buffer *b, int fd, int len, bool *eof);
+
 #endif
