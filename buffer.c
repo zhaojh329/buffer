@@ -219,12 +219,12 @@ static int __buffer_copyout(struct buffer *b, char *dest, size_t len, bool drain
     return len - remain;
 }
 
-int buffer_remove(struct buffer *b, char *dest, size_t len)
+int buffer_remove(struct buffer *b, void *dest, size_t len)
 {
     return __buffer_copyout(b, dest, len, true);
 }
 
-int buffer_copyout(struct buffer *b, char *dest, size_t len)
+int buffer_copyout(struct buffer *b, void *dest, size_t len)
 {
     return __buffer_copyout(b, dest, len, false);
 }
@@ -337,9 +337,7 @@ uint8_t buffer_index(struct buffer *b, size_t index)
 
 int buffer_find_str(struct buffer *b, const char *what)
 {
-    size_t data_len;
     int i, what_len;
-    int pos = 0;
 
     assert(what && *what);
 

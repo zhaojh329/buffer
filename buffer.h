@@ -66,10 +66,10 @@ void buffer_free(struct buffer *b);
 int buffer_add(struct buffer *b, const void *source, size_t len);
 
 /* Read data from a buffer and drain the bytes read. Return the number of bytes read */
-int buffer_remove(struct buffer *b, char *dest, size_t len);
+int buffer_remove(struct buffer *b, void *dest, size_t len);
 
 /* Read data from a buffer, and leave the buffer unchanged. Return the number of bytes read */
-int buffer_copyout(struct buffer *b, char *dest, size_t len);
+int buffer_copyout(struct buffer *b, void *dest, size_t len);
 
 /* Remove a specified number of bytes data from the beginning of a buffer. */
 void buffer_drain(struct buffer *b, size_t len);
