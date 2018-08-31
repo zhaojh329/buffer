@@ -97,10 +97,10 @@ static void buffer_del_chain(struct buffer *b, struct buffer_chain *chain)
 {
     if (chain == b->head)
         b->head = chain->next;
-    
+
     if (chain == b->tail)
         b->tail = NULL;
-    
+
     free(chain);
 }
 
@@ -160,73 +160,6 @@ copy:
     chain->tail += len;
     b->data_len += len;
     return 0;
-}
-
-void buffer_drain(struct buffer *b, size_t len)
-{
-    struct buffer_chain *chain = b->head;
-    struct buffer_chain *next;
-    int datlen;
-
-    if (!len)
-        return;
-
-    do {
-        if (!chain)
-            break;
-
-        next = chain->next;
-        datlen = chain->tail - chain->data;
-
-        if (len < datlen) {
-            chain->data += len;
-            b->data_len -= len;
-            break;
-        }
-
-        len -= datlen;
-        buffer_del_chain(b, chain);
-        b->data_len -= datlen;
-        chain = next;
-    } while(len);
-}
-
-static int __buffer_copyout(struct buffer *b, char *dest, size_t len, bool drain)
-{
-    int remain = len;
-
-    do {
-        int datlen;
-        struct buffer_chain *chain = b->head;
-        if (!chain)
-            break;
-
-        datlen = chain->tail - chain->data;
-        if (datlen == 0)
-            break;
-
-        if (datlen > remain)
-            datlen = remain;
-
-        memcpy(dest, chain->data, datlen);
-        dest += datlen;
-        remain -= datlen;
-
-        if (drain)
-            buffer_drain(b, datlen);
-    } while (remain);
-
-    return len - remain;
-}
-
-int buffer_remove(struct buffer *b, void *dest, size_t len)
-{
-    return __buffer_copyout(b, dest, len, true);
-}
-
-int buffer_copyout(struct buffer *b, void *dest, size_t len)
-{
-    return __buffer_copyout(b, dest, len, false);
 }
 
 int buffer_add_string(struct buffer *b, const char *s)
@@ -314,6 +247,74 @@ begin:
     } while (remain);
 
     return len - remain;
+}
+
+
+void buffer_drain(struct buffer *b, size_t len)
+{
+    struct buffer_chain *chain = b->head;
+    struct buffer_chain *next;
+    int datlen;
+
+    if (!len)
+        return;
+
+    do {
+        if (!chain)
+            break;
+
+        next = chain->next;
+        datlen = chain->tail - chain->data;
+
+        if (len < datlen) {
+            chain->data += len;
+            b->data_len -= len;
+            break;
+        }
+
+        len -= datlen;
+        buffer_del_chain(b, chain);
+        b->data_len -= datlen;
+        chain = next;
+    } while(len);
+}
+
+static int __buffer_copyout(struct buffer *b, char *dest, size_t len, bool drain)
+{
+    int remain = len;
+
+    do {
+        int datlen;
+        struct buffer_chain *chain = b->head;
+        if (!chain)
+            break;
+
+        datlen = chain->tail - chain->data;
+        if (datlen == 0)
+            break;
+
+        if (datlen > remain)
+            datlen = remain;
+
+        memcpy(dest, chain->data, datlen);
+        dest += datlen;
+        remain -= datlen;
+
+        if (drain)
+            buffer_drain(b, datlen);
+    } while (remain);
+
+    return len - remain;
+}
+
+int buffer_remove(struct buffer *b, void *dest, size_t len)
+{
+    return __buffer_copyout(b, dest, len, true);
+}
+
+int buffer_copyout(struct buffer *b, void *dest, size_t len)
+{
+    return __buffer_copyout(b, dest, len, false);
 }
 
 uint8_t buffer_index(struct buffer *b, size_t index)

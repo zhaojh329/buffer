@@ -62,23 +62,10 @@ static inline size_t buffer_data_len(struct buffer *b)
 
 void buffer_free(struct buffer *b);
 
+
+
 /* Append data to the end of a buffer. Returns the remaining unadded bytes */
 int buffer_add(struct buffer *b, const void *source, size_t len);
-
-/* Append a byte to the end of a buffer */
-static inline int buffer_add_byte(struct buffer *b, uint8_t byte)
-{
-    return buffer_add(b, &byte, 1);
-}
-
-/* Read data from a buffer and drain the bytes read. Return the number of bytes read */
-int buffer_remove(struct buffer *b, void *dest, size_t len);
-
-/* Read data from a buffer, and leave the buffer unchanged. Return the number of bytes read */
-int buffer_copyout(struct buffer *b, void *dest, size_t len);
-
-/* Remove a specified number of bytes data from the beginning of a buffer. */
-void buffer_drain(struct buffer *b, size_t len);
 
 /* Append a string to the end of a buffer. Returns the remaining unadded bytes */
 int buffer_add_string(struct buffer *b, const char *s);
@@ -89,6 +76,12 @@ int buffer_add_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribut
 /* Append a formatted string to the end of a buffer. Return the number of characters printed */
 int buffer_add_printf(struct buffer *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
+/* Append a byte to the end of a buffer */
+static inline int buffer_add_byte(struct buffer *b, uint8_t byte)
+{
+    return buffer_add(b, &byte, 1);
+}
+
 /*
 ** Append data from a file to the end of a buffer
 **
@@ -96,6 +89,19 @@ int buffer_add_printf(struct buffer *b, const char *fmt, ...) __attribute__((for
 ** Return the number of bytes append
 */
 int buffer_add_fd(struct buffer *b, int fd, int len, bool *eof);
+
+
+
+/* Read data from a buffer and drain the bytes read. Return the number of bytes read */
+int buffer_remove(struct buffer *b, void *dest, size_t len);
+
+/* Read data from a buffer, and leave the buffer unchanged. Return the number of bytes read */
+int buffer_copyout(struct buffer *b, void *dest, size_t len);
+
+/* Remove a specified number of bytes data from the beginning of a buffer. */
+void buffer_drain(struct buffer *b, size_t len);
+
+
 
 /* Index of a byte */
 uint8_t buffer_index(struct buffer *b, size_t index);
