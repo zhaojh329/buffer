@@ -139,7 +139,7 @@ int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap)
         size_t tail_room = buffer_tailroom(b);
 
         va_copy(local_ap, ap);
-        ret = vsnprintf(b->tail, tail_room, fmt, local_ap);
+        ret = vsnprintf((char *)b->tail, tail_room, fmt, local_ap);
         va_end(local_ap);
 
         if (ret < 0)
