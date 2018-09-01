@@ -40,8 +40,8 @@ static int buffer_resize(struct buffer *b, size_t size)
     while (new_size < size)
         new_size <<= 1;
 
-    if (b->head) {
-        if (size < buffer_size(b) && buffer_headroom(b) > 0) {
+    if (likely(b->head)) {
+        if (buffer_headroom(b) > 0) {
             memmove(b->head, b->data, data_len);
             b->data = b->head;
             b->tail = b->data + data_len;
@@ -52,15 +52,14 @@ static int buffer_resize(struct buffer *b, size_t size)
         head = malloc(new_size);
     }
 
-    if (!head)
+    if (unlikely(!head))
         return -1;
 
-    b->data = head + buffer_headroom(b);
-    b->head = head;
+    b->head = b->data = head;
     b->tail = b->data + data_len;
     b->end = b->head + new_size;
 
-    if (b->tail > b->end)
+    if (unlikely(b->tail > b->end))
         b->tail = b->end;
 
     return 0;
@@ -146,12 +145,12 @@ int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap)
         if (ret < 0)
             return -1;
 
-        if (ret < tail_room) {
+        if (likely(ret < tail_room)) {
             b->tail += ret;
             return 0;
         }
 
-        if (buffer_grow(b, 1) < 0)
+        if (unlikely(buffer_grow(b, 1) < 0))
             return -1;
     }
 }
@@ -189,7 +188,7 @@ int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof)
     do {
         size_t tail_room = buffer_tailroom(b);
         ssize_t ret = read(fd, b->tail, tail_room);
-        if (ret < 0) {
+        if (unlikely(ret < 0)) {
             if (errno == EINTR)
                 continue;
 
