@@ -79,7 +79,7 @@ void buffer_free(struct buffer *b)
 {
     if (b->head) {
         free(b->head);
-        memset(b, 0, sizeof(b));
+        memset(b, 0, sizeof(struct buffer));
     }
 }
 
