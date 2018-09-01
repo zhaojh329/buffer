@@ -25,88 +25,192 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
-/*
- *  buffer:
- *  +--------------+--------------+--------------+--------------+--------------+
- *  | buffer_chain | buffer_chain | buffer_chain | buffer_chain | buffer_chain |
- *  +--------------+--------------+--------------+--------------+--------------+
- *
- *  buffer_chain:
- *  head      data                   end
- *  +---------+---------------+------+
- *  | drained |    content    | free |
- *  +---------+---------------+------+
- */
-
-struct buffer_chain {
-    struct buffer_chain *next;
-
-    uint8_t *data;
-    uint8_t *tail;
-    uint8_t *end;
-
-    uint8_t head[0];
-};
-
 struct buffer {
-    struct buffer_chain *head;
-    struct buffer_chain *tail;
-
-    size_t data_len;
+    uint8_t *head;  /* Head of buffer */
+    uint8_t *data;  /* Data head pointer */
+    uint8_t *tail;  /* Data tail pointer */
+    uint8_t *end;   /* End of buffer */
 };
 
-static inline size_t buffer_data_len(struct buffer *b)
-{
-    return b->data_len;
-}
-
+int buffer_init(struct buffer *b, size_t size);
 void buffer_free(struct buffer *b);
 
-
-
-/* Append data to the end of a buffer. Returns the remaining unadded bytes */
-int buffer_add(struct buffer *b, const void *source, size_t len);
-
-/* Append a string to the end of a buffer. Returns the remaining unadded bytes */
-int buffer_add_string(struct buffer *b, const char *s);
-
-/* Append a va_list formatted string to the end of a buffer. Return the number of characters printed */
-int buffer_add_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribute__((format(printf, 2, 0)));
-
-/* Append a formatted string to the end of a buffer. Return the number of characters printed */
-int buffer_add_printf(struct buffer *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-
-/* Append a byte to the end of a buffer */
-static inline int buffer_add_byte(struct buffer *b, uint8_t byte)
+/*  Actual data Length */
+static inline size_t buffer_length(const struct buffer *b)
 {
-    return buffer_add(b, &byte, 1);
+	return b->tail - b->data;
 }
 
-/*
-** Append data from a file to the end of a buffer
-**
-** len: how much data to read, or -1 to read as much as possible.
-** Return the number of bytes append
-*/
-int buffer_add_fd(struct buffer *b, int fd, int len, bool *eof);
+/* The total buffer size  */
+static inline size_t buffer_size(const struct buffer *b)
+{
+	return b->end - b->head;
+}
+
+static inline size_t buffer_headroom(const struct buffer *b)
+{
+	return b->data - b->head;
+}
+
+static inline size_t buffer_tailroom(const struct buffer *b)
+{
+	return b->end - b->tail;
+}
+
+static inline void *buffer_data(const struct buffer *b)
+{
+	return b->data;
+}
+
+void *buffer_put(struct buffer *b, size_t len);
+
+static inline void *buffer_put_zero(struct buffer *b, size_t len)
+{
+	void *tmp = buffer_put(b, len);
+
+	if (tmp)
+		memset(tmp, 0, len);
+	return tmp;
+}
+
+static inline void *buffer_put_data(struct buffer *b, const void *data,   size_t len)
+{
+	void *tmp = buffer_put(b, len);
+
+	if (tmp)
+		memcpy(tmp, data, len);
+	return tmp;
+}
 
 
+static inline int buffer_put_u8(struct buffer *b, uint8_t val)
+{
+	uint8_t *p = buffer_put(b, 1);
 
-/* Read data from a buffer and drain the bytes read. Return the number of bytes read */
-int buffer_remove(struct buffer *b, void *dest, size_t len);
+	if (p) {
+		*p = val;
+		return 0;
+	}
 
-/* Read data from a buffer, and leave the buffer unchanged. Return the number of bytes read */
-int buffer_copyout(struct buffer *b, void *dest, size_t len);
+	return -1;
+}
 
-/* Remove a specified number of bytes data from the beginning of a buffer. */
-void buffer_drain(struct buffer *b, size_t len);
+static inline int buffer_put_u16(struct buffer *b, uint16_t val)
+{
+	uint16_t *p = buffer_put(b, 2);
+
+	if (p) {
+		*p = val;
+		return 0;
+	}
+
+	return -1;
+}
+
+static inline int buffer_put_u32(struct buffer *b, uint32_t val)
+{
+	uint32_t *p = buffer_put(b, 4);
+
+	if (p) {
+		*p = val;
+		return 0;
+	}
+
+	return -1;
+}
+
+static inline int buffer_put_u64(struct buffer *b, uint64_t val)
+{
+	uint64_t *p = buffer_put(b, 8);
+
+	if (p) {
+		*p = val;
+		return 0;
+	}
+
+	return -1;
+}
+
+static inline int buffer_put_string(struct buffer *b, const char *s)
+{
+	size_t len = strlen(s);
+	char *p = buffer_put(b, len);
+
+	if (p) {
+		memcpy(p, s, len);
+		return 0;
+	}
+
+	return -1;
+}
+
+int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribute__((format(printf, 2, 0)));
+int buffer_put_printf(struct buffer *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof);
+
+/**
+ *	buffer_truncate - remove end from a buffer
+ *	@b: buffer to alter
+ *	@len: new length
+ *
+ *	Cut the length of a buffer down by removing data from the tail. If
+ *	the buffer is already under the length specified it is not modified.
+ */
+static inline void buffer_truncate(struct buffer *b, size_t len)
+{
+	if (buffer_length(b) > len)
+        b->tail = b->data + len;
+}
 
 
+size_t buffer_pull(struct buffer *b, void *dest, size_t len);
 
-/* Index of a byte */
-uint8_t buffer_index(struct buffer *b, size_t index);
+static inline uint8_t buffer_pull_u8(struct buffer *b)
+{
+	uint8_t val = 0;
 
-/* Find a string in a buffer, return it's position or -1 if not found */
-int buffer_find_str(struct buffer *b, const char *what);
+	if (buffer_length(b) > 0) {
+		val = b->data[0];
+		b->data += 1;
+	}
+
+	return val;
+}
+
+static inline uint16_t buffer_pull_u16(struct buffer *b)
+{
+	uint16_t val = 0;
+
+	if (buffer_length(b) > 1) {
+		val = *((uint16_t *)b->data);
+		b->data += 2;
+	}
+
+	return val;
+}
+
+static inline uint32_t buffer_pull_u32(struct buffer *b)
+{
+	uint32_t val = 0;
+
+	if (buffer_length(b) > 3) {
+		val = *((uint32_t *)b->data);
+		b->data += 4;
+	}
+
+	return val;
+}
+
+static inline uint64_t buffer_pull_u64(struct buffer *b)
+{
+	uint64_t val = 0;
+
+	if (buffer_length(b) > 7) {
+		val = *((uint64_t *)b->data);
+		b->data += 8;
+	}
+
+	return val;
+}
 
 #endif
