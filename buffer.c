@@ -186,8 +186,16 @@ int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof)
     *eof = false;
 
     do {
+        ssize_t ret;
         size_t tail_room = buffer_tailroom(b);
-        ssize_t ret = read(fd, b->tail, tail_room);
+
+        if (unlikely(!tail_room)) {
+            if (buffer_grow(b, 1) < 0)
+                return -1;
+            tail_room = buffer_tailroom(b);
+        }
+
+        ret = read(fd, b->tail, tail_room);
         if (unlikely(ret < 0)) {
             if (errno == EINTR)
                 continue;
