@@ -226,4 +226,6 @@ static inline uint64_t buffer_pull_u64(struct buffer *b)
 	return val;
 }
 
+int buffer_pull_to_fd(struct buffer *b, int fd, size_t len);
+
 #endif

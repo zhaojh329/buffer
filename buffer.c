@@ -109,28 +109,6 @@ void *buffer_put(struct buffer *b, size_t len)
 	return tmp;
 }
 
-/**
- *	buffer_pull - remove data from the start of a buffer
- *	@b: buffer to use
- *	@len: amount of data to remove
- *
- *	This function removes data from the start of a buffer,
- *  returning the actual length removed.
- *  Just remove the data if the dest is NULL.
- */
-size_t buffer_pull(struct buffer *b, void *dest, size_t len)
-{
-	if (len > buffer_length(b))
-		len = buffer_length(b);
-
-	if (dest)
-		memcpy(dest, b->data, len);
-
-	b->data += len;
-
-	return len;
-}
-
 int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap)
 {
     for (;;) {
@@ -168,7 +146,7 @@ int buffer_put_printf(struct buffer *b, const char *fmt, ...)
 }
 
 /*
-*  Append data from a file to the end of a buffer
+*  buffer_put_fd - Append data from a file to the end of a buffer
 *  @fd: file descriptor
 *  @len: how much data to read, or -1 to read as much as possible.
 *  @eof: indicates end of file
@@ -213,6 +191,69 @@ int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof)
 
         b->tail += ret;
         remain -= ret;
+    } while (remain);
+
+    return len - remain;
+}
+
+/**
+ *	buffer_pull - remove data from the start of a buffer
+ *	@b: buffer to use
+ *	@len: amount of data to remove
+ *
+ *	This function removes data from the start of a buffer,
+ *  returning the actual length removed.
+ *  Just remove the data if the dest is NULL.
+ */
+size_t buffer_pull(struct buffer *b, void *dest, size_t len)
+{
+	if (len > buffer_length(b))
+		len = buffer_length(b);
+
+	if (dest)
+		memcpy(dest, b->data, len);
+
+	b->data += len;
+
+	return len;
+}
+
+/*
+*  buffer_pull_to_fd - remove data from the start of a buffer and write to a file
+*  @fd: file descriptor
+*  @len: how much data to remove, or -1 to remove as much as possible.
+*
+*  Return the number of bytes removed
+*/
+int buffer_pull_to_fd(struct buffer *b, int fd, size_t len)
+{
+    ssize_t remain;
+
+    if (len < 0)
+        len = INT_MAX;
+
+    remain = len;
+
+    do {
+        ssize_t ret;
+        size_t data_len = buffer_length(b);
+
+        if (!data_len)
+            break;
+
+        ret = write(fd, b->data, data_len);
+        if (ret < 0) {
+            if (errno == EINTR)
+                continue;
+
+            if (errno == EAGAIN || errno == EWOULDBLOCK || errno == ENOTCONN)
+                break;
+
+            return -1;
+        }
+
+        remain -= ret;
+        b->data += ret;
     } while (remain);
 
     return len - remain;
