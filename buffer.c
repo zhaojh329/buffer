@@ -101,6 +101,9 @@ void *buffer_put(struct buffer *b, size_t len)
 {
 	void *tmp;
 
+    if (buffer_length(b) == 0)
+        b->tail = b->data = b->head;
+
 	if (buffer_tailroom(b) < len && buffer_grow(b, len) < 0)
         return NULL;
 
