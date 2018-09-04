@@ -261,3 +261,23 @@ int buffer_pull_to_fd(struct buffer *b, int fd, size_t len)
 
     return len - remain;
 }
+
+void buffer_hexdump(struct buffer *b, size_t offset, size_t len)
+{
+    int i;
+    size_t data_len = buffer_length(b);
+    uint8_t *data = buffer_data(b);
+
+    if (offset > data_len - 1)
+        return;
+
+    if (len > data_len)
+        len = data_len;
+
+    for (i = offset; i < len; i++) {
+        printf("%02X ", data[i]);
+        if (i && i % 16 == 0)
+            printf("\n");
+    }
+    printf("\n");
+}

@@ -228,4 +228,6 @@ static inline uint64_t buffer_pull_u64(struct buffer *b)
 
 int buffer_pull_to_fd(struct buffer *b, int fd, size_t len);
 
+void buffer_hexdump(struct buffer *b, size_t offset, size_t len);
+
 #endif
