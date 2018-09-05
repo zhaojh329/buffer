@@ -99,17 +99,17 @@ static inline int buffer_grow(struct buffer *b, size_t len)
  */
 void *buffer_put(struct buffer *b, size_t len)
 {
-	void *tmp;
+    void *tmp;
 
     if (buffer_length(b) == 0)
         b->tail = b->data = b->head;
 
-	if (buffer_tailroom(b) < len && buffer_grow(b, len) < 0)
+    if (buffer_tailroom(b) < len && buffer_grow(b, len) < 0)
         return NULL;
 
     tmp = b->tail;
-	b->tail += len;
-	return tmp;
+    b->tail += len;
+    return tmp;
 }
 
 int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap)
@@ -222,15 +222,15 @@ int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
  */
 size_t buffer_pull(struct buffer *b, void *dest, size_t len)
 {
-	if (len > buffer_length(b))
-		len = buffer_length(b);
+    if (len > buffer_length(b))
+        len = buffer_length(b);
 
-	if (dest)
-		memcpy(dest, b->data, len);
+    if (dest)
+        memcpy(dest, b->data, len);
 
-	b->data += len;
+    b->data += len;
 
-	return len;
+    return len;
 }
 
 /*

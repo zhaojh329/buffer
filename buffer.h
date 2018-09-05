@@ -39,9 +39,9 @@
 #endif
 
 enum {
-	P_FD_EOF = 0,
-	P_FD_ERR = -1,
-	P_FD_PENDING = -2
+    P_FD_EOF = 0,
+    P_FD_ERR = -1,
+    P_FD_PENDING = -2
 };
 
 struct buffer {
@@ -57,110 +57,110 @@ void buffer_free(struct buffer *b);
 /*  Actual data Length */
 static inline size_t buffer_length(const struct buffer *b)
 {
-	return b->tail - b->data;
+    return b->tail - b->data;
 }
 
 /* The total buffer size  */
 static inline size_t buffer_size(const struct buffer *b)
 {
-	return b->end - b->head;
+    return b->end - b->head;
 }
 
 static inline size_t buffer_headroom(const struct buffer *b)
 {
-	return b->data - b->head;
+    return b->data - b->head;
 }
 
 static inline size_t buffer_tailroom(const struct buffer *b)
 {
-	return b->end - b->tail;
+    return b->end - b->tail;
 }
 
 static inline void *buffer_data(const struct buffer *b)
 {
-	return b->data;
+    return b->data;
 }
 
 void *buffer_put(struct buffer *b, size_t len);
 
 static inline void *buffer_put_zero(struct buffer *b, size_t len)
 {
-	void *tmp = buffer_put(b, len);
+    void *tmp = buffer_put(b, len);
 
-	if (likely(tmp))
-		memset(tmp, 0, len);
-	return tmp;
+    if (likely(tmp))
+        memset(tmp, 0, len);
+    return tmp;
 }
 
 static inline void *buffer_put_data(struct buffer *b, const void *data,   size_t len)
 {
-	void *tmp = buffer_put(b, len);
+    void *tmp = buffer_put(b, len);
 
-	if (likely(tmp))
-		memcpy(tmp, data, len);
-	return tmp;
+    if (likely(tmp))
+        memcpy(tmp, data, len);
+    return tmp;
 }
 
 
 static inline int buffer_put_u8(struct buffer *b, uint8_t val)
 {
-	uint8_t *p = buffer_put(b, 1);
+    uint8_t *p = buffer_put(b, 1);
 
-	if (likely(p)) {
-		*p = val;
-		return 0;
-	}
+    if (likely(p)) {
+        *p = val;
+        return 0;
+    }
 
-	return -1;
+    return -1;
 }
 
 static inline int buffer_put_u16(struct buffer *b, uint16_t val)
 {
-	uint16_t *p = buffer_put(b, 2);
+    uint16_t *p = buffer_put(b, 2);
 
-	if (likely(p)) {
-		*p = val;
-		return 0;
-	}
+    if (likely(p)) {
+        *p = val;
+        return 0;
+    }
 
-	return -1;
+    return -1;
 }
 
 static inline int buffer_put_u32(struct buffer *b, uint32_t val)
 {
-	uint32_t *p = buffer_put(b, 4);
+    uint32_t *p = buffer_put(b, 4);
 
-	if (likely(p)) {
-		*p = val;
-		return 0;
-	}
+    if (likely(p)) {
+        *p = val;
+        return 0;
+    }
 
-	return -1;
+    return -1;
 }
 
 static inline int buffer_put_u64(struct buffer *b, uint64_t val)
 {
-	uint64_t *p = buffer_put(b, 8);
+    uint64_t *p = buffer_put(b, 8);
 
-	if (likely(p)) {
-		*p = val;
-		return 0;
-	}
+    if (likely(p)) {
+        *p = val;
+        return 0;
+    }
 
-	return -1;
+    return -1;
 }
 
 static inline int buffer_put_string(struct buffer *b, const char *s)
 {
-	size_t len = strlen(s);
-	char *p = buffer_put(b, len);
+    size_t len = strlen(s);
+    char *p = buffer_put(b, len);
 
-	if (likely(p)) {
-		memcpy(p, s, len);
-		return 0;
-	}
+    if (likely(p)) {
+        memcpy(p, s, len);
+        return 0;
+    }
 
-	return -1;
+    return -1;
 }
 
 int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribute__((format(printf, 2, 0)));
@@ -179,7 +179,7 @@ int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
  */
 static inline void buffer_truncate(struct buffer *b, size_t len)
 {
-	if (buffer_length(b) > len)
+    if (buffer_length(b) > len)
         b->tail = b->data + len;
 }
 
@@ -188,54 +188,54 @@ size_t buffer_pull(struct buffer *b, void *dest, size_t len);
 
 static inline uint8_t buffer_pull_u8(struct buffer *b)
 {
-	uint8_t val = 0;
+    uint8_t val = 0;
 
-	if (likely(buffer_length(b) > 0)) {
-		val = b->data[0];
-		b->data += 1;
-	}
+    if (likely(buffer_length(b) > 0)) {
+        val = b->data[0];
+        b->data += 1;
+    }
 
-	return val;
+    return val;
 }
 
 static inline uint16_t buffer_pull_u16(struct buffer *b)
 {
-	uint16_t val = 0;
+    uint16_t val = 0;
 
-	if (likely(buffer_length(b) > 1)) {
-		val = *((uint16_t *)b->data);
-		b->data += 2;
-	}
+    if (likely(buffer_length(b) > 1)) {
+        val = *((uint16_t *)b->data);
+        b->data += 2;
+    }
 
-	return val;
+    return val;
 }
 
 static inline uint32_t buffer_pull_u32(struct buffer *b)
 {
-	uint32_t val = 0;
+    uint32_t val = 0;
 
-	if (likely(buffer_length(b) > 3)) {
-		val = *((uint32_t *)b->data);
-		b->data += 4;
-	}
+    if (likely(buffer_length(b) > 3)) {
+        val = *((uint32_t *)b->data);
+        b->data += 4;
+    }
 
-	return val;
+    return val;
 }
 
 static inline uint64_t buffer_pull_u64(struct buffer *b)
 {
-	uint64_t val = 0;
+    uint64_t val = 0;
 
-	if (likely(buffer_length(b) > 7)) {
-		val = *((uint64_t *)b->data);
-		b->data += 8;
-	}
+    if (likely(buffer_length(b) > 7)) {
+        val = *((uint64_t *)b->data);
+        b->data += 8;
+    }
 
-	return val;
+    return val;
 }
 
 int buffer_pull_to_fd(struct buffer *b, int fd, size_t len,
-	int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg);
+    int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg);
 
 void buffer_hexdump(struct buffer *b, size_t offset, size_t len);
 
