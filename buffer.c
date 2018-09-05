@@ -153,10 +153,14 @@ int buffer_put_printf(struct buffer *b, const char *fmt, ...)
 *  @fd: file descriptor
 *  @len: how much data to read, or -1 to read as much as possible.
 *  @eof: indicates end of file
+*  @rd: A customized read function. Generally used for SSL.
+*       The customized read function should be return:
+*       P_FD_EOF/P_FD_ERR/P_FD_PENDING or number of bytes read.
 *
 *  Return the number of bytes append
 */
-int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof)
+int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
+    int (*rd)(int fd, void *buf, size_t count, void *arg), void *arg)
 {
     ssize_t remain;
 
@@ -176,15 +180,23 @@ int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof)
             tail_room = buffer_tailroom(b);
         }
 
-        ret = read(fd, b->tail, tail_room);
-        if (unlikely(ret < 0)) {
-            if (errno == EINTR)
-                continue;
-
-            if (errno == EAGAIN || errno == ENOTCONN)
+        if (rd) {
+            ret = rd(fd, b->tail, tail_room, arg);
+            if (ret == P_FD_ERR)
+                return -1;
+            else if (ret == P_FD_PENDING)
                 break;
+        } else {
+            ret = read(fd, b->tail, tail_room);
+            if (unlikely(ret < 0)) {
+                if (errno == EINTR)
+                    continue;
 
-            return -1;
+                if (errno == EAGAIN || errno == ENOTCONN)
+                    break;
+
+                return -1;
+            }
         }
 
         if (!ret) {
@@ -225,10 +237,14 @@ size_t buffer_pull(struct buffer *b, void *dest, size_t len)
 *  buffer_pull_to_fd - remove data from the start of a buffer and write to a file
 *  @fd: file descriptor
 *  @len: how much data to remove, or -1 to remove as much as possible.
+*  @wr: A customized write function. Generally used for SSL.
+*       The customized write function should be return:
+*       P_FD_EOF/P_FD_ERR/P_FD_PENDING or number of bytes write.
 *
 *  Return the number of bytes removed
 */
-int buffer_pull_to_fd(struct buffer *b, int fd, size_t len)
+int buffer_pull_to_fd(struct buffer *b, int fd, size_t len,
+    int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg)
 {
     ssize_t remain;
 
@@ -244,15 +260,23 @@ int buffer_pull_to_fd(struct buffer *b, int fd, size_t len)
         if (!data_len)
             break;
 
-        ret = write(fd, b->data, data_len);
-        if (ret < 0) {
-            if (errno == EINTR)
-                continue;
-
-            if (errno == EAGAIN || errno == EWOULDBLOCK || errno == ENOTCONN)
+        if (wr) {
+            ret = wr(fd, b->data, data_len, arg);
+            if (ret == P_FD_ERR)
+                return -1;
+            else if (ret == P_FD_PENDING)
                 break;
+        } else {
+            ret = write(fd, b->data, data_len);
+            if (ret < 0) {
+                if (errno == EINTR)
+                    continue;
 
-            return -1;
+                if (errno == EAGAIN || errno == EWOULDBLOCK || errno == ENOTCONN)
+                    break;
+
+                return -1;
+            }
         }
 
         remain -= ret;

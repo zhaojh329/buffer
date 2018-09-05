@@ -38,6 +38,12 @@
 #define unlikely(x)	__builtin_expect(!!(x), 0)
 #endif
 
+enum {
+	P_FD_EOF = 0,
+	P_FD_ERR = -1,
+	P_FD_PENDING = -2
+};
+
 struct buffer {
     uint8_t *head;  /* Head of buffer */
     uint8_t *data;  /* Data head pointer */
@@ -159,7 +165,9 @@ static inline int buffer_put_string(struct buffer *b, const char *s)
 
 int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribute__((format(printf, 2, 0)));
 int buffer_put_printf(struct buffer *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof);
+
+int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
+    int (*rd)(int fd, void *buf, size_t count, void *arg), void *arg);
 
 /**
  *	buffer_truncate - remove end from a buffer
@@ -226,7 +234,8 @@ static inline uint64_t buffer_pull_u64(struct buffer *b)
 	return val;
 }
 
-int buffer_pull_to_fd(struct buffer *b, int fd, size_t len);
+int buffer_pull_to_fd(struct buffer *b, int fd, size_t len,
+	int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg);
 
 void buffer_hexdump(struct buffer *b, size_t offset, size_t len);
 
