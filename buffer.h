@@ -308,4 +308,6 @@ int buffer_pull_to_fd(struct buffer *b, int fd, size_t len,
 
 void buffer_hexdump(struct buffer *b, size_t offset, size_t len);
 
+int buffer_find(struct buffer *b, size_t offset, size_t limit, void *sep, size_t seplen);
+
 #endif

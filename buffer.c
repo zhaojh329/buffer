@@ -313,3 +313,33 @@ void buffer_hexdump(struct buffer *b, size_t offset, size_t len)
     }
     printf("\n");
 }
+
+/**
+ *	buffer_find - finds the start of the first occurrence of the sep of length seplen in the buffer
+ *  @limit: 0 indicates unlimited
+ *	Return -1 if sep is not present in the buffer
+ */
+int buffer_find(struct buffer *b, size_t offset, size_t limit, void *sep, size_t seplen)
+{
+    const char *begin = (char *)b->data;
+    const char *end;
+
+    if (offset >= buffer_length(b))
+        return -1;
+
+    if (limit == 0 || limit > buffer_length(b))
+        limit = buffer_length(b);
+
+    end = begin + limit - seplen;
+
+    for (; begin <= end; ++begin) {
+        if (begin[0] == ((const char *)sep)[0] &&
+            !memcmp ((const void *)&begin[1],
+                (const void *) ((const char *)sep + 1),
+                seplen - 1))
+        return begin - (char *)b->data;
+    }
+
+    return -1;
+}
+
