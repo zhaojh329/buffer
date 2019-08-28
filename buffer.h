@@ -108,6 +108,15 @@ static inline void buffer_check_persistent_size(struct buffer *b)
         buffer_resize(b, b->persistent);
 }
 
+/*
+ *	buffer_put - add data to a buffer
+ *	@b: buffer to use
+ *	@len: amount of data to add
+ *
+ *	This function extends the used data area of the buffer. A pointer to the
+ *	first byte of the extra data is returned.
+ *  If this would exceed the total buffer size the buffer will grow automatically.
+ */
 void *buffer_put(struct buffer *b, size_t len);
 
 static inline void *buffer_put_zero(struct buffer *b, size_t len)
@@ -193,6 +202,17 @@ static inline int buffer_put_string(struct buffer *b, const char *s)
 int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribute__((format(printf, 2, 0)));
 int buffer_put_printf(struct buffer *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
+/*
+ *  buffer_put_fd - Append data from a file to the end of a buffer. The file must be opened in nonblocking.
+ *  @fd: file descriptor
+ *  @len: how much data to read, or -1 to read as much as possible.
+ *  @eof: indicates end of file
+ *  @rd: A customized read function. Generally used for SSL.
+ *       The customized read function should be return:
+ *       P_FD_EOF/P_FD_ERR/P_FD_PENDING or number of bytes read.
+ *
+ *  Return the number of bytes append
+ */
 int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
     int (*rd)(int fd, void *buf, size_t count, void *arg), void *arg);
 
@@ -212,7 +232,15 @@ static inline void buffer_truncate(struct buffer *b, size_t len)
     }
 }
 
-
+/*
+ *	buffer_pull - remove data from the start of a buffer
+ *	@b: buffer to use
+ *	@len: amount of data to remove
+ *
+ *	This function removes data from the start of a buffer,
+ *  returning the actual length removed.
+ *  Just remove the data if the dest is NULL.
+ */
 size_t buffer_pull(struct buffer *b, void *dest, size_t len);
 
 static inline uint8_t buffer_pull_u8(struct buffer *b)
@@ -303,11 +331,26 @@ static inline uint64_t buffer_get_u64(struct buffer *b, ssize_t offset)
     return val;
 }
 
+/*
+ *  buffer_pull_to_fd - remove data from the start of a buffer and write to a file
+ *  @fd: file descriptor
+ *  @len: how much data to remove, or -1 to remove as much as possible.
+ *  @wr: A customized write function. Generally used for SSL.
+ *       The customized write function should be return:
+ *       P_FD_EOF/P_FD_ERR/P_FD_PENDING or number of bytes write.
+ *
+ *  Return the number of bytes removed
+ */
 int buffer_pull_to_fd(struct buffer *b, int fd, size_t len,
     int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg);
 
 void buffer_hexdump(struct buffer *b, size_t offset, size_t len);
 
+/*
+ *	buffer_find - finds the start of the first occurrence of the sep of length seplen in the buffer
+ *  @limit: 0 indicates unlimited
+ *	Return -1 if sep is not present in the buffer
+ */
 int buffer_find(struct buffer *b, size_t offset, size_t limit, void *sep, size_t seplen);
 
 #endif
