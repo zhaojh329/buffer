@@ -341,7 +341,7 @@ static inline uint64_t buffer_get_u64(struct buffer *b, ssize_t offset)
  *
  *  Return the number of bytes removed
  */
-int buffer_pull_to_fd(struct buffer *b, int fd, size_t len,
+int buffer_pull_to_fd(struct buffer *b, int fd, ssize_t len,
     int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg);
 
 void buffer_hexdump(struct buffer *b, size_t offset, size_t len);
