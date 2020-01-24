@@ -277,8 +277,8 @@ void buffer_hexdump(struct buffer *b, size_t offset, size_t len)
 
 int buffer_find(struct buffer *b, size_t offset, size_t limit, void *sep, size_t seplen)
 {
-    const char *begin = (char *)b->data;
-    const char *end;
+    const uint8_t *begin = b->data;
+    const uint8_t *end;
 
     if (offset >= buffer_length(b))
         return -1;
@@ -289,11 +289,9 @@ int buffer_find(struct buffer *b, size_t offset, size_t limit, void *sep, size_t
     end = begin + limit - seplen;
 
     for (; begin <= end; ++begin) {
-        if (begin[0] == ((const char *)sep)[0] &&
-            !memcmp ((const void *)&begin[1],
-                (const void *) ((const char *)sep + 1),
-                seplen - 1))
-        return begin - (char *)b->data;
+        if (begin[0] == ((uint8_t *)sep)[0] &&
+            !memcmp(begin + 1, sep + 1, seplen - 1))
+        return begin - b->data;
     }
 
     return -1;
