@@ -64,7 +64,7 @@ int buffer_resize(struct buffer *b, size_t size);
 void buffer_free(struct buffer *b);
 
 
-/*  Actual data Length */
+/* Actual data Length */
 static inline size_t buffer_length(const struct buffer *b)
 {
     return b->tail - b->data;
@@ -108,7 +108,7 @@ static inline void buffer_check_persistent_size(struct buffer *b)
         buffer_resize(b, b->persistent);
 }
 
-/*
+/**
  *	buffer_put - add data to a buffer
  *	@b: buffer to use
  *	@len: amount of data to add
@@ -202,7 +202,7 @@ static inline int buffer_put_string(struct buffer *b, const char *s)
 int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribute__((format(printf, 2, 0)));
 int buffer_put_printf(struct buffer *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
-/*
+/**
  *  buffer_put_fd - Append data from a file to the end of a buffer. The file must be opened in nonblocking.
  *  @fd: file descriptor
  *  @len: how much data to read, or -1 to read as much as possible.
@@ -232,7 +232,7 @@ static inline void buffer_truncate(struct buffer *b, size_t len)
     }
 }
 
-/*
+/**
  *	buffer_pull - remove data from the start of a buffer
  *	@b: buffer to use
  *	@len: amount of data to remove
@@ -331,7 +331,7 @@ static inline uint64_t buffer_get_u64(struct buffer *b, ssize_t offset)
     return val;
 }
 
-/*
+/**
  *  buffer_pull_to_fd - remove data from the start of a buffer and write to a file
  *  @fd: file descriptor
  *  @len: how much data to remove, or -1 to remove as much as possible.
@@ -346,7 +346,7 @@ int buffer_pull_to_fd(struct buffer *b, int fd, ssize_t len,
 
 void buffer_hexdump(struct buffer *b, size_t offset, size_t len);
 
-/*
+/**
  *	buffer_find - finds the start of the first occurrence of the sep of length seplen in the buffer
  *  @limit: 0 indicates unlimited
  *	Return -1 if sep is not present in the buffer
