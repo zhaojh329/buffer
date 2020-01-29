@@ -217,7 +217,7 @@ int buffer_pull_to_fd(struct buffer *b, int fd, ssize_t len,
     ssize_t remain;
 
     if (len < 0)
-        len = INT_MAX;
+        len = buffer_length(b);
 
     remain = len;
 
