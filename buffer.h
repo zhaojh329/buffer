@@ -211,11 +211,7 @@ int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
  *	Cut the length of a buffer down by removing data from the tail. If
  *	the buffer is already under the length specified it is not modified.
  */
-static inline void buffer_truncate(struct buffer *b, size_t len)
-{
-    if (buffer_length(b) > len)
-        b->tail = b->data + len;
-}
+void buffer_truncate(struct buffer *b, size_t len);
 
 /**
  *	buffer_pull - remove data from the start of a buffer

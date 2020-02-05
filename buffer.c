@@ -196,6 +196,14 @@ int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
     return len - remain;
 }
 
+void buffer_truncate(struct buffer *b, size_t len)
+{
+    if (buffer_length(b) > len) {
+        b->tail = b->data + len;
+        buffer_reclaim (b);
+    }
+}
+
 size_t buffer_pull(struct buffer *b, void *dest, size_t len)
 {
     if (len > buffer_length(b))
