@@ -206,7 +206,7 @@ size_t buffer_pull(struct buffer *b, void *dest, size_t len)
 
     b->data += len;
 
-    buffer_check_persistent_size(b);
+    buffer_reclaim(b);
 
     return len;
 }
@@ -250,7 +250,7 @@ int buffer_pull_to_fd(struct buffer *b, int fd, ssize_t len,
         b->data += ret;
     }
 
-    buffer_check_persistent_size(b);
+    buffer_reclaim(b);
 
     return len - remain;
 }
