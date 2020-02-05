@@ -29,6 +29,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <sys/types.h>
 
@@ -56,12 +57,18 @@ struct buffer {
     uint8_t *data;  /* Data head pointer */
     uint8_t *tail;  /* Data tail pointer */
     uint8_t *end;   /* End of buffer */
+    size_t limit;   /* The limit of total size */
 };
 
 int buffer_init(struct buffer *b, size_t size);
+
+/**
+ * buffer_resize - realloc memory to specially size
+ * @return: 0(success), -1(system error), 1(larger than limit)
+ */
 int buffer_resize(struct buffer *b, size_t size);
 void buffer_free(struct buffer *b);
-
+void buffer_set_limit(struct buffer *b, size_t size);
 
 /* Actual data Length */
 static inline size_t buffer_length(const struct buffer *b)
@@ -95,10 +102,15 @@ static inline void buffer_reclaim(struct buffer *b)
     buffer_resize(b, buffer_length(b));
 }
 
+static inline size_t buffer_free_size(struct buffer *b)
+{
+    if (b->limit == 0)
+        return UINT_MAX;
+    return b->limit - buffer_length (b);
+}
+
 /**
- *	buffer_put - add data to a buffer
- *	@b: buffer to use
- *	@len: amount of data to add
+ *	buffer_put - append data to a buffer
  *
  *	This function extends the used data area of the buffer. A pointer to the
  *	first byte of the extra data is returned.
@@ -191,22 +203,19 @@ int buffer_put_printf(struct buffer *b, const char *fmt, ...) __attribute__((for
 
 /**
  *  buffer_put_fd - Append data from a file to the end of a buffer. The file must be opened in nonblocking.
- *  @fd: file descriptor
- *  @len: how much data to read, or -1 to read as much as possible.
- *  @eof: indicates end of file
- *  @rd: A customized read function. Generally used for SSL.
+ *  @param fd: file descriptor
+ *  @param len: how much data to read, or -1 to read as much as possible.
+ *  @param eof: indicates end of file
+ *  @param rd: A customized read function. Generally used for SSL.
  *       The customized read function should be return:
  *       P_FD_EOF/P_FD_ERR/P_FD_PENDING or number of bytes read.
- *
- *  Return the number of bytes append
+ *  @return: Return the number of bytes append
  */
 int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
     int (*rd)(int fd, void *buf, size_t count, void *arg), void *arg);
 
 /**
  *	buffer_truncate - remove end from a buffer
- *	@b: buffer to alter
- *	@len: new length
  *
  *	Cut the length of a buffer down by removing data from the tail. If
  *	the buffer is already under the length specified it is not modified.
@@ -215,8 +224,6 @@ void buffer_truncate(struct buffer *b, size_t len);
 
 /**
  *	buffer_pull - remove data from the start of a buffer
- *	@b: buffer to use
- *	@len: amount of data to remove
  *
  *	This function removes data from the start of a buffer,
  *  returning the actual length removed.

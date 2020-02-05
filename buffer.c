@@ -30,8 +30,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
-#include <limits.h>
-#include <assert.h>
 
 #include "buffer.h"
 
@@ -42,7 +40,10 @@ int buffer_resize(struct buffer *b, size_t size)
     int data_len = buffer_length(b);
 
     while (new_size < size)
-        new_size <<= 1;
+        new_size <<= 1u;
+
+    if (b->limit > 0 && new_size > b->limit)
+        return 1;
 
     if (likely(b->head)) {
         if (buffer_headroom(b) > 0) {
@@ -73,8 +74,8 @@ int buffer_init(struct buffer *b, size_t size)
 {
     memset(b, 0, sizeof(struct buffer));
 
-    if (size)
-        return buffer_resize(b, size);
+    if (size > 0)
+        return buffer_resize (b, size);
 
     return 0;
 }
@@ -87,6 +88,20 @@ void buffer_free(struct buffer *b)
     }
 }
 
+void buffer_set_limit(struct buffer *b, size_t size)
+{
+    size_t new_size = getpagesize();
+
+    while (new_size < size)
+        new_size <<= 1u;
+
+    b->limit = new_size;
+}
+
+/**
+ * buffer_grow - grow memory of the buffer
+ * @return: 0(success), -1(system error), 1(larger than limit)
+ */
 static inline int buffer_grow(struct buffer *b, size_t len)
 {
     return buffer_resize(b, buffer_size(b) + len);
@@ -99,7 +114,7 @@ void *buffer_put(struct buffer *b, size_t len)
     if (buffer_length(b) == 0)
         b->tail = b->data = b->head;
 
-    if (buffer_tailroom(b) < len && buffer_grow(b, len) < 0)
+    if (buffer_tailroom(b) < len && buffer_grow(b, len))
         return NULL;
 
     tmp = b->tail;
@@ -127,7 +142,7 @@ int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap)
             return 0;
         }
 
-        if (unlikely(buffer_grow(b, 1) < 0))
+        if (unlikely(buffer_grow(b, 1)))
             return -1;
     }
 }
@@ -160,8 +175,11 @@ int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
         size_t tail_room = buffer_tailroom(b);
 
         if (unlikely(!tail_room)) {
-            if (buffer_grow(b, 1) < 0)
+            ret = buffer_grow(b, 1);
+            if (ret < 0)
                 return -1;
+            if (ret > 0)
+                break;
             tail_room = buffer_tailroom(b);
         }
 
