@@ -30,6 +30,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <endian.h>
 #include <stdbool.h>
 #include <sys/types.h>
 
@@ -161,6 +162,16 @@ static inline int buffer_put_u16(struct buffer *b, uint16_t val)
     return -1;
 }
 
+static inline int buffer_put_u16be(struct buffer *b, uint16_t val)
+{
+    return buffer_put_u16(b, htobe16(val));
+}
+
+static inline int buffer_put_u16le(struct buffer *b, uint16_t val)
+{
+    return buffer_put_u16(b, htole16(val));
+}
+
 static inline int buffer_put_u32(struct buffer *b, uint32_t val)
 {
     uint32_t *p = buffer_put(b, 4);
@@ -173,6 +184,16 @@ static inline int buffer_put_u32(struct buffer *b, uint32_t val)
     return -1;
 }
 
+static inline int buffer_put_u32be(struct buffer *b, uint32_t val)
+{
+    return buffer_put_u32(b, htobe32(val));
+}
+
+static inline int buffer_put_u32le(struct buffer *b, uint32_t val)
+{
+    return buffer_put_u32(b, htole32(val));
+}
+
 static inline int buffer_put_u64(struct buffer *b, uint64_t val)
 {
     uint64_t *p = buffer_put(b, 8);
@@ -183,6 +204,16 @@ static inline int buffer_put_u64(struct buffer *b, uint64_t val)
     }
 
     return -1;
+}
+
+static inline int buffer_put_u64be(struct buffer *b, uint64_t val)
+{
+    return buffer_put_u64(b, htobe64(val));
+}
+
+static inline int buffer_put_u64le(struct buffer *b, uint64_t val)
+{
+    return buffer_put_u64(b, htole64(val));
 }
 
 static inline int buffer_put_string(struct buffer *b, const char *s)
@@ -255,6 +286,16 @@ static inline uint16_t buffer_pull_u16(struct buffer *b)
     return val;
 }
 
+static inline uint16_t buffer_pull_u16be(struct buffer *b)
+{
+    return be16toh(buffer_pull_u16(b));
+}
+
+static inline uint16_t buffer_pull_u16le(struct buffer *b)
+{
+    return le16toh(buffer_pull_u16(b));
+}
+
 static inline uint32_t buffer_pull_u32(struct buffer *b)
 {
     uint32_t val = 0;
@@ -267,6 +308,16 @@ static inline uint32_t buffer_pull_u32(struct buffer *b)
     return val;
 }
 
+static inline uint32_t buffer_pull_u32be(struct buffer *b)
+{
+    return be32toh(buffer_pull_u32(b));
+}
+
+static inline uint32_t buffer_pull_u32le(struct buffer *b)
+{
+    return le32toh(buffer_pull_u32(b));
+}
+
 static inline uint64_t buffer_pull_u64(struct buffer *b)
 {
     uint64_t val = 0;
@@ -277,6 +328,16 @@ static inline uint64_t buffer_pull_u64(struct buffer *b)
     }
 
     return val;
+}
+
+static inline uint64_t buffer_pull_u64be(struct buffer *b)
+{
+    return be64toh(buffer_pull_u64(b));
+}
+
+static inline uint64_t buffer_pull_u64le(struct buffer *b)
+{
+    return le64toh(buffer_pull_u64(b));
 }
 
 static inline uint8_t buffer_get_u8(struct buffer *b, ssize_t offset)
@@ -299,6 +360,16 @@ static inline uint16_t buffer_get_u16(struct buffer *b, ssize_t offset)
     return val;
 }
 
+static inline uint16_t buffer_get_u16be(struct buffer *b, ssize_t offset)
+{
+    return be16toh(buffer_get_u16(b, offset));
+}
+
+static inline uint16_t buffer_get_u16le(struct buffer *b, ssize_t offset)
+{
+    return le16toh(buffer_get_u16(b, offset));
+}
+
 static inline uint32_t buffer_get_u32(struct buffer *b, ssize_t offset)
 {
     uint32_t val = 0;
@@ -309,6 +380,16 @@ static inline uint32_t buffer_get_u32(struct buffer *b, ssize_t offset)
     return val;
 }
 
+static inline uint32_t buffer_get_u32be(struct buffer *b, ssize_t offset)
+{
+    return be32toh(buffer_get_u32(b, offset));
+}
+
+static inline uint32_t buffer_get_u32le(struct buffer *b, ssize_t offset)
+{
+    return le32toh(buffer_get_u32(b, offset));
+}
+
 static inline uint64_t buffer_get_u64(struct buffer *b, ssize_t offset)
 {
     uint64_t val = 0;
@@ -317,6 +398,16 @@ static inline uint64_t buffer_get_u64(struct buffer *b, ssize_t offset)
         val = *((uint64_t *)(b->data + offset));
 
     return val;
+}
+
+static inline uint64_t buffer_get_u64be(struct buffer *b, ssize_t offset)
+{
+    return be64toh(buffer_get_u64(b, offset));
+}
+
+static inline uint64_t buffer_get_u64le(struct buffer *b, ssize_t offset)
+{
+    return le64toh(buffer_get_u64(b, offset));
 }
 
 /**
