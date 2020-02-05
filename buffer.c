@@ -159,7 +159,7 @@ int buffer_put_printf(struct buffer *b, const char *fmt, ...)
     return ret;
 }
 
-int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof,
+int buffer_put_fd_ex(struct buffer *b, int fd, ssize_t len, bool *eof,
     int (*rd)(int fd, void *buf, size_t count, void *arg), void *arg)
 {
     ssize_t remain;
