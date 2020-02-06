@@ -237,7 +237,7 @@ size_t buffer_pull(struct buffer *b, void *dest, size_t len)
     return len;
 }
 
-int buffer_pull_to_fd(struct buffer *b, int fd, ssize_t len,
+int buffer_pull_to_fd_ex(struct buffer *b, int fd, ssize_t len,
     int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg)
 {
     ssize_t remain;

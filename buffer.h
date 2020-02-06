@@ -416,17 +416,21 @@ static inline uint64_t buffer_get_u64le(struct buffer *b, ssize_t offset)
 }
 
 /**
- *  buffer_pull_to_fd - remove data from the start of a buffer and write to a file
- *  @fd: file descriptor
- *  @len: how much data to remove, or -1 to remove as much as possible.
- *  @wr: A customized write function. Generally used for SSL.
+ *  buffer_pull_to_fd_ex - remove data from the start of a buffer and write to a file
+ *  @param fd: file descriptor
+ *  @param len: how much data to remove, or -1 to remove as much as possible.
+ *  @param wr: A customized write function. Generally used for SSL.
  *       The customized write function should be return:
  *       P_FD_EOF/P_FD_ERR/P_FD_PENDING or number of bytes write.
- *
- *  Return the number of bytes removed
+ *  @return: the number of bytes removed
  */
-int buffer_pull_to_fd(struct buffer *b, int fd, ssize_t len,
+int buffer_pull_to_fd_ex(struct buffer *b, int fd, ssize_t len,
     int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg);
+
+static inline int buffer_pull_to_fd(struct buffer *b, int fd, ssize_t len)
+{
+    return buffer_pull_to_fd_ex(b, fd, len, NULL, NULL);
+}
 
 void buffer_hexdump(struct buffer *b, size_t offset, size_t len);
 
