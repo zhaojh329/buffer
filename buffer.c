@@ -171,8 +171,9 @@ int buffer_put_fd_ex(struct buffer *b, int fd, ssize_t len, bool *eof,
     *eof = false;
 
     do {
-        ssize_t ret;
         size_t tail_room = buffer_tailroom(b);
+        size_t want;
+        ssize_t ret;
 
         if (unlikely(!tail_room)) {
             ret = buffer_grow(b, 1);
@@ -183,14 +184,18 @@ int buffer_put_fd_ex(struct buffer *b, int fd, ssize_t len, bool *eof,
             tail_room = buffer_tailroom(b);
         }
 
+        want = tail_room;
+        if (want > remain)
+            want = remain;
+
         if (rd) {
-            ret = rd(fd, b->tail, tail_room, arg);
+            ret = rd(fd, b->tail, want, arg);
             if (ret == P_FD_ERR)
                 return -1;
             else if (ret == P_FD_PENDING)
                 break;
         } else {
-            ret = read(fd, b->tail, tail_room);
+            ret = read(fd, b->tail, want);
             if (unlikely(ret < 0)) {
                 if (errno == EINTR)
                     continue;
