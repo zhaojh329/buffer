@@ -1,4 +1,4 @@
-/* 
+/*
  * MIT License
  *
  * Copyright (c) 2019 Jianhui Zhao <jianhuizhao329@gmail.com>
@@ -107,7 +107,7 @@ static inline size_t buffer_free_size(struct buffer *b)
 {
     if (b->limit == 0)
         return UINT_MAX;
-    return b->limit - buffer_length (b);
+    return b->limit - buffer_length(b);
 }
 
 /**
@@ -243,7 +243,7 @@ int buffer_put_printf(struct buffer *b, const char *fmt, ...) __attribute__((for
  *  @return: Return the number of bytes append
  */
 int buffer_put_fd_ex(struct buffer *b, int fd, ssize_t len, bool *eof,
-                  int (*rd)(int fd, void *buf, size_t count, void *arg), void *arg);
+                     int (*rd)(int fd, void *buf, size_t count, void *arg), void *arg);
 
 static inline int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof)
 {
@@ -425,7 +425,7 @@ static inline uint64_t buffer_get_u64le(struct buffer *b, ssize_t offset)
  *  @return: the number of bytes removed
  */
 int buffer_pull_to_fd_ex(struct buffer *b, int fd, ssize_t len,
-    int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg);
+                         int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg);
 
 static inline int buffer_pull_to_fd(struct buffer *b, int fd, ssize_t len)
 {

@@ -1,4 +1,4 @@
-/* 
+/*
  * MIT License
  *
  * Copyright (c) 2019 Jianhui Zhao <jianhuizhao329@gmail.com>
@@ -75,7 +75,7 @@ int buffer_init(struct buffer *b, size_t size)
     memset(b, 0, sizeof(struct buffer));
 
     if (size > 0)
-        return buffer_resize (b, size);
+        return buffer_resize(b, size);
 
     return 0;
 }
@@ -160,7 +160,7 @@ int buffer_put_printf(struct buffer *b, const char *fmt, ...)
 }
 
 int buffer_put_fd_ex(struct buffer *b, int fd, ssize_t len, bool *eof,
-    int (*rd)(int fd, void *buf, size_t count, void *arg), void *arg)
+                     int (*rd)(int fd, void *buf, size_t count, void *arg), void *arg)
 {
     ssize_t remain;
 
@@ -223,7 +223,7 @@ void buffer_truncate(struct buffer *b, size_t len)
 {
     if (buffer_length(b) > len) {
         b->tail = b->data + len;
-        buffer_reclaim (b);
+        buffer_reclaim(b);
     }
 }
 
@@ -243,7 +243,7 @@ size_t buffer_pull(struct buffer *b, void *dest, size_t len)
 }
 
 int buffer_pull_to_fd_ex(struct buffer *b, int fd, ssize_t len,
-    int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg)
+                         int (*wr)(int fd, void *buf, size_t count, void *arg), void *arg)
 {
     ssize_t remain;
 
@@ -321,8 +321,8 @@ int buffer_find(struct buffer *b, size_t offset, size_t limit, void *sep, size_t
 
     for (; begin <= end; ++begin) {
         if (begin[0] == ((uint8_t *)sep)[0] &&
-            !memcmp(begin + 1, sep + 1, seplen - 1))
-        return begin - b->data;
+                !memcmp(begin + 1, sep + 1, seplen - 1))
+            return begin - b->data;
     }
 
     return -1;
