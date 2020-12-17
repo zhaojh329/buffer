@@ -110,6 +110,17 @@ static inline size_t buffer_free_size(struct buffer *b)
     return b->limit - buffer_length(b);
 }
 
+/* Discards data from tail */
+static inline void buffer_discard(struct buffer *b, size_t len)
+{
+    size_t data_len = buffer_length(b);
+
+    if (len > data_len)
+        len = data_len;
+
+    b->tail -= len;
+}
+
 /**
  *	buffer_put - append data to a buffer
  *
