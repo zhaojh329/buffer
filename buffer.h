@@ -110,17 +110,6 @@ static inline size_t buffer_free_size(struct buffer *b)
     return b->limit - buffer_length(b);
 }
 
-/* Discards data from tail */
-static inline void buffer_discard(struct buffer *b, size_t len)
-{
-    size_t data_len = buffer_length(b);
-
-    if (len > data_len)
-        len = data_len;
-
-    b->tail -= len;
-}
-
 /**
  *	buffer_put - append data to a buffer
  *
@@ -268,6 +257,17 @@ static inline int buffer_put_fd(struct buffer *b, int fd, ssize_t len, bool *eof
  *	the buffer is already under the length specified it is not modified.
  */
 void buffer_truncate(struct buffer *b, size_t len);
+
+/* Discards data from tail */
+static inline void buffer_discard(struct buffer *b, size_t len)
+{
+    size_t data_len = buffer_length(b);
+
+    if (len > data_len)
+        len = data_len;
+
+    buffer_truncate(b, data_len - len);
+}
 
 /**
  *	buffer_pull - remove data from the start of a buffer
