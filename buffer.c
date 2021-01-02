@@ -168,7 +168,9 @@ int buffer_put_fd_ex(struct buffer *b, int fd, ssize_t len, bool *eof,
         len = INT_MAX;
 
     remain = len;
-    *eof = false;
+
+    if (eof)
+        *eof = false;
 
     do {
         size_t tail_room = buffer_tailroom(b);
@@ -208,7 +210,8 @@ int buffer_put_fd_ex(struct buffer *b, int fd, ssize_t len, bool *eof,
         }
 
         if (!ret) {
-            *eof = true;
+            if (eof)
+                *eof = true;
             break;
         }
 
