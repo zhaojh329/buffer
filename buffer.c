@@ -98,15 +98,6 @@ void buffer_set_limit(struct buffer *b, size_t size)
     b->limit = new_size;
 }
 
-/**
- * buffer_grow - grow memory of the buffer
- * @return: 0(success), -1(system error), 1(larger than limit)
- */
-static inline int buffer_grow(struct buffer *b, size_t len)
-{
-    return buffer_resize(b, buffer_size(b) + len);
-}
-
 void *buffer_put(struct buffer *b, size_t len)
 {
     void *tmp;

@@ -71,6 +71,8 @@ int buffer_resize(struct buffer *b, size_t size);
 void buffer_free(struct buffer *b);
 void buffer_set_limit(struct buffer *b, size_t size);
 
+
+
 /* Actual data Length */
 static inline size_t buffer_length(const struct buffer *b)
 {
@@ -81,6 +83,15 @@ static inline size_t buffer_length(const struct buffer *b)
 static inline size_t buffer_size(const struct buffer *b)
 {
     return b->end - b->head;
+}
+
+/**
+ * buffer_grow - grow memory of the buffer
+ * @return: 0(success), -1(system error), 1(larger than limit)
+ */
+static inline int buffer_grow(struct buffer *b, size_t len)
+{
+    return buffer_resize(b, buffer_size(b) + len);
 }
 
 static inline size_t buffer_headroom(const struct buffer *b)
