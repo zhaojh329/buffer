@@ -244,7 +244,7 @@ int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribut
 int buffer_put_printf(struct buffer *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 /**
- *  buffer_put_fd_ex - Append data from a file to the end of a buffer. The file must be opened in nonblocking.
+ *  buffer_put_fd_ex - Append data from a file to the end of a buffer.
  *  @param fd: file descriptor
  *  @param len: how much data to read, or -1 to read as much as possible.
  *  @param eof: indicates end of file
