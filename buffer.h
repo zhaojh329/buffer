@@ -151,7 +151,7 @@ static inline void *buffer_put_data(struct buffer *b, const void *data,   size_t
 
 static inline int buffer_put_u8(struct buffer *b, uint8_t val)
 {
-    uint8_t *p = (uint8_t*) buffer_put(b, 1);
+    uint8_t *p = (uint8_t *)buffer_put(b, 1);
 
     if (likely(p)) {
         *p = val;
@@ -163,7 +163,7 @@ static inline int buffer_put_u8(struct buffer *b, uint8_t val)
 
 static inline int buffer_put_u16(struct buffer *b, uint16_t val)
 {
-    uint16_t *p = (uint16_t*) buffer_put(b, 2);
+    uint16_t *p = (uint16_t *)buffer_put(b, 2);
 
     if (likely(p)) {
         *p = val;
@@ -185,7 +185,7 @@ static inline int buffer_put_u16le(struct buffer *b, uint16_t val)
 
 static inline int buffer_put_u32(struct buffer *b, uint32_t val)
 {
-    uint32_t *p = (uint32_t*) buffer_put(b, 4);
+    uint32_t *p = (uint32_t *)buffer_put(b, 4);
 
     if (likely(p)) {
         *p = val;
@@ -207,7 +207,7 @@ static inline int buffer_put_u32le(struct buffer *b, uint32_t val)
 
 static inline int buffer_put_u64(struct buffer *b, uint64_t val)
 {
-    uint64_t *p = (uint64_t*) buffer_put(b, 8);
+    uint64_t *p = (uint64_t *)buffer_put(b, 8);
 
     if (likely(p)) {
         *p = val;
@@ -230,7 +230,7 @@ static inline int buffer_put_u64le(struct buffer *b, uint64_t val)
 static inline int buffer_put_string(struct buffer *b, const char *s)
 {
     size_t len = strlen(s);
-    char *p = (char*) buffer_put(b, len);
+    char *p = (char *)buffer_put(b, len);
 
     if (likely(p)) {
         memcpy(p, s, len);
