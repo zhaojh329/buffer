@@ -151,7 +151,7 @@ static inline void *buffer_put_data(struct buffer *b, const void *data,   size_t
 static inline int buffer_put_u8(struct buffer *b, uint8_t val)
 {
     if (buffer_put_data(b, &val, sizeof(val)))
-        return 0;
+        return 1;
 
     return -1;
 }
@@ -159,7 +159,7 @@ static inline int buffer_put_u8(struct buffer *b, uint8_t val)
 static inline int buffer_put_u16(struct buffer *b, uint16_t val)
 {
     if (buffer_put_data(b, &val, sizeof(val)))
-        return 0;
+        return 2;
 
     return -1;
 }
@@ -177,7 +177,7 @@ static inline int buffer_put_u16le(struct buffer *b, uint16_t val)
 static inline int buffer_put_u32(struct buffer *b, uint32_t val)
 {
     if (buffer_put_data(b, &val, sizeof(val)))
-        return 0;
+        return 4;
 
     return -1;
 }
@@ -195,7 +195,7 @@ static inline int buffer_put_u32le(struct buffer *b, uint32_t val)
 static inline int buffer_put_u64(struct buffer *b, uint64_t val)
 {
     if (buffer_put_data(b, &val, sizeof(val)))
-        return 0;
+        return 8;
 
     return -1;
 }
@@ -217,12 +217,13 @@ static inline int buffer_put_string(struct buffer *b, const char *s)
 
     if (likely(p)) {
         memcpy(p, s, len);
-        return 0;
+        return len;
     }
 
     return -1;
 }
 
+/* The two functions return the number of characters printed(excluding the null byte used to end output to strings) */
 int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap) __attribute__((format(printf, 2, 0)));
 int buffer_put_printf(struct buffer *b, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 

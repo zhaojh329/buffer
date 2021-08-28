@@ -131,7 +131,7 @@ int buffer_put_vprintf(struct buffer *b, const char *fmt, va_list ap)
 
         if (likely(ret < tail_room)) {
             b->tail += ret;
-            return 0;
+            return ret;
         }
 
         if (unlikely(buffer_grow(b, 1)))
