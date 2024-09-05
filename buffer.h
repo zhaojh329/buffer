@@ -59,9 +59,15 @@ struct buffer {
     uint8_t *tail;  /* Data tail pointer */
     uint8_t *end;   /* End of buffer */
     size_t limit;   /* The limit of total size */
+    bool growing;   /* Whether it grows automatically */
 };
 
 int buffer_init(struct buffer *b, size_t size);
+
+static inline void buffer_growing(struct buffer *b, bool growing)
+{
+    b->growing = growing;
+}
 
 /**
  * buffer_resize - realloc memory to specially size

@@ -75,6 +75,8 @@ int buffer_init(struct buffer *b, size_t size)
 {
     memset(b, 0, sizeof(struct buffer));
 
+    b->growing = true;
+
     if (size > 0)
         return buffer_resize(b, size);
 
@@ -106,7 +108,7 @@ void *buffer_put(struct buffer *b, size_t len)
     if (buffer_length(b) == 0)
         b->tail = b->data = b->head;
 
-    if (buffer_tailroom(b) < len && buffer_grow(b, len))
+    if (buffer_tailroom(b) < len && (!b->growing || buffer_grow(b, len)))
         return NULL;
 
     tmp = b->tail;
