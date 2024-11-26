@@ -38,7 +38,7 @@ int buffer_resize(struct buffer *b, size_t size)
 {
     uint8_t *head;
     size_t new_size = getpagesize();
-    int data_len = buffer_length(b);
+    size_t data_len = buffer_length(b);
 
     while (new_size < size)
         new_size <<= 1u;
